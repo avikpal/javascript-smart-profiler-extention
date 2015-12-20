@@ -1,10 +1,15 @@
 //Created a port with background page for continous message communication
 
 var backgroundPageConnection = chrome.runtime.connect({
-    name: "devtools-page-to-background-page-comm" //Given a Name
+    name: "panel"
 });
 
-//Sending message to background page- here starting traversing down a dom-node clicking
+backgroundPageConnection.postMessage({
+    name: 'init',
+    tabId: chrome.devtools.inspectedWindow.tabId
+});
+
+//Sending a script to inject to background page- here starting traversing down a dom-node clicking
 //to be handled by background page
 
 chrome.runtime.sendMessage({
@@ -14,8 +19,11 @@ chrome.runtime.sendMessage({
  
 
 //Hanlde response when recieved from background page
-port.onMessage.addListener(function (msg) {
-    console.log("Tab Data recieved is  " + msg);
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    console.log("Tab Data recieved is  " + message);
+    //update the devtools ui accordingly
+    var profilerControlButton = document.getElementById("profilerControl");
+    profilerControlButton.value = "Stop smart profiling";
 });
 
 chrome.devtools.panels.create("js smart profiler", "icon.png", "jsProfilerPanel.html", function(panel){
