@@ -19,24 +19,37 @@ chrome.extension.onMessage.addListener(function (message, sender) {
     chrome.extension.sendMessage("My URL is" + window.location.origin);
 });
 
-var navigateDom = function() {
+var navigateDom = function(callbackNode) {
 	//custom code suited to my purpose for dom traversal
-	fireEvent($(".user-nav-wrap"), "click");
-	pendingTimer = setTimeout(fireEvent($("#user-nav-settings"), "click"), standardTimeoutForEachClick);
-	$(".list-item").each(function(){
-		if($(this).children("span").html() == "About") {
-			setTimeout(fireEvent($(this), "click"), standardTimeoutForEachClick);
-			//migrated to a seperate function for better readability
-			setTimeout(function(){navgateThroughShellPackageList()}, 0);
-		}
-	});
-};
+	if (callbackNode == "init") {
+		fireEvent($(".user-nav-wrap"), "click");
+		setTimeout(navigateDom("#user-nav-settings"), standardTimeoutForEachClick);
+	}
+	
+	if(callbackNode == "#user-nav-settings") {
+		fireEvent($("#user-nav-settings"), "click");
+		setTimeout(navigateDom(".list-item"), standardTimeoutForEachClick);
+	}
 
-var navgateThroughShellPackageList = function() {
-	$(".disclosure containerless").each(function(){
-		setTimeout(fireEvent($(this), "click"), standardTimeoutForEachClick);
-	});
-}
+	if(callbackNode == ".list-item") {
+		$(".list-item").each(function(){
+		if($(this).children("span").html() == "About") {
+			fireEvent($(this), "click");
+			setTimeout(navigateDom(".disclosure containerless"), standardTimeoutForEachClick);
+		}
+	});		
+	}
+
+	if(callbackNode == ".disclosure containerless") {
+		$(".disclosure containerless").each(function(){
+			fireEvent($(this), "click");
+			//in this scenario no different routes are hit or any view is refreshed 
+			//if there is still problem should pass via the same callback mechanism to another
+			//function
+		});
+		setTimeout(chrome.extension.sendMessage("stopping-dom-runner") ,0);
+	}
+};
 
 var stopNavigatingDom = function() {
 	shouldStopDoingStuff = true;
