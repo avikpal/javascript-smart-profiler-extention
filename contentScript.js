@@ -21,33 +21,35 @@ chrome.extension.onMessage.addListener(function (message, sender) {
 
 var navigateDom = function(callbackNode) {
 	//custom code suited to my purpose for dom traversal
-	if (callbackNode == "init") {
-		fireEvent($(".user-nav-wrap"), "click");
-		setTimeout(navigateDom("#user-nav-settings"), standardTimeoutForEachClick);
-	}
-	
-	if(callbackNode == "#user-nav-settings") {
-		fireEvent($("#user-nav-settings"), "click");
-		setTimeout(navigateDom(".list-item"), standardTimeoutForEachClick);
-	}
-
-	if(callbackNode == ".list-item") {
-		$(".list-item").each(function(){
-		if($(this).children("span").html() == "About") {
-			fireEvent($(this), "click");
-			setTimeout(navigateDom(".disclosure containerless"), standardTimeoutForEachClick);
+	if(!shouldStopDoingStuff) {
+		if (callbackNode == "init") {
+			fireEvent($(".user-nav-wrap"), "click");
+			setTimeout(navigateDom("#user-nav-settings"), standardTimeoutForEachClick);
 		}
-	});		
-	}
+		
+		if(callbackNode == "#user-nav-settings") {
+			fireEvent($("#user-nav-settings"), "click");
+			setTimeout(navigateDom(".list-item"), standardTimeoutForEachClick);
+		}
 
-	if(callbackNode == ".disclosure containerless") {
-		$(".disclosure containerless").each(function(){
-			fireEvent($(this), "click");
-			//in this scenario no different routes are hit or any view is refreshed 
-			//if there is still problem should pass via the same callback mechanism to another
-			//function
-		});
-		setTimeout(chrome.extension.sendMessage("stopping-dom-runner") ,0);
+		if(callbackNode == ".list-item") {
+			$(".list-item").each(function(){
+			if($(this).children("span").html() == "About") {
+				fireEvent($(this), "click");
+				setTimeout(navigateDom(".disclosure containerless"), standardTimeoutForEachClick);
+			}
+		});		
+		}
+
+		if(callbackNode == ".disclosure containerless") {
+			$(".disclosure containerless").each(function(){
+				fireEvent($(this), "click");
+				//in this scenario no different routes are hit or any view is refreshed 
+				//if there is still problem should pass via the same callback mechanism to another
+				//function
+			});
+			setTimeout(chrome.extension.sendMessage("stopping-dom-runner") ,0);
+		}
 	}
 };
 
