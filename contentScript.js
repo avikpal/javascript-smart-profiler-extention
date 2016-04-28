@@ -10,7 +10,7 @@ chrome.extension.onMessage.addListener(function (message, sender) {
     console.log("In content Script Message Recieved is " + message);
 
     if(message === "start-navigating-dom") {
-    	navigateDom();
+    	navigateDom("init");
     } else if (message === "start-navigating-dom") {
     	stopNavigatingDom();
     }
@@ -116,4 +116,35 @@ function fireEvent(node, eventName) {
         event.synthetic = true; // allow detection of synthetic events
         node.fireEvent("on" + eventName, event);
     }
+};
+
+//sender.tab
+function setUpProfilerDataAccumulator(tab) {
+    var heapData,
+    debugId = {tabId:tab.id};
+    chrome.debugger.attach(debugId, '1.0', function() {   
+    chrome.debugger.sendCommand(debugId, 'Debugger.enable', {}, function() {
+
+        function headerListener(source, name, data) {
+            if(source.tabId == tab.id && name == 'HeapProfiler.addProfileHeader') {
+              function chunkListener(source, name, data) {
+                if(name == 'HeapProfiler.addHeapSnapshotChunk') {
+                  heapData += data.chunk;
+                } else if(name == 'HeapProfiler.finishHeapSnapshot') {
+                  chrome.debugger.onEvent.removeListener(chunkListener);
+                  chrome.debugger.detach(debugId);
+                  //do something with data
+                  console.log('Collected ' + heapData.length + ' bytes of JSON data');
+                }
+              }
+              chrome.debugger.onEvent.addListener(chunkListener);
+              chrome.debugger.sendCommand(debugId, 'HeapProfiler.getHeapSnapshot', {uid:data.header.uid, type:data.header.typeId});
+            }
+            chrome.debugger.onEvent.removeListener(headerListener);
+          };
+
+          chrome.debugger.onEvent.addListener(headerListener);
+          chrome.debugger.sendCommand(debugId, 'HeapProfiler.takeHeapSnapshot');
+    });
+  });
 };

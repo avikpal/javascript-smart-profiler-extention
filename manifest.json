@@ -9,6 +9,7 @@
 
   "permissions": [
     "activeTab",
+    "debugger",
     "experimental",
     "https://ajax.googleapis.com/"
   ],
@@ -17,14 +18,14 @@
             "background.js"
         ]
     },
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "jquery.min.js", "contentScript.js"
-            ]
-        }
-    ]
+  "content_scripts": [
+      {
+          "matches": [
+              "<all_urls>"
+          ],
+          "js": [
+              "jquery.min.js", "contentScript.js"
+          ]
+      }
+  ]
 }
