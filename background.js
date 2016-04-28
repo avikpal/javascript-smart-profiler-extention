@@ -19,7 +19,7 @@ chrome.runtime.onConnect.addListener(function(port) {
     };
 
     // add the listener
-    port.onMessage.addListener(devToolsListener);
+    port.onMessage.addListener(extentionListener);
 
     port.onDisconnect.addListener(function(port) {
         port.onMessage.removeListener(extensionListener);
